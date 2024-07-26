@@ -1,8 +1,8 @@
 ---
 title: "Self-reported life satisfaction, 2011 to 2023"
 subtitle: "Replicating the Our World in Data Grapher"
-author: "YOUR NAME HERE" # Remember to add your name!
-date: "24-07-2024"
+author: "Jobert Richie Nansseu"
+date: "2024-07-26"
 theme: united
 ---
 
@@ -23,18 +23,26 @@ h1 {
 ```
 
 ```{r include = F}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      warning = FALSE)
 
 # Load packages 
 if(!require(pacman)) install.packages("pacman")
-pacman::p_load(plotly, tidyverse, reactable, here, scales)
+pacman::p_load(plotly, 
+               tidyverse, 
+               reactable,
+               reactablefmtr,
+               here, 
+               scales)
 ```
 
 ```{r}
 ## Import data
 cantril <- 
   read_csv(here("data/happiness-cantril-ladder.csv")) %>% 
-  rename(Country = Entity)
+  rename(Country = Entity,
+         CLS = `Cantril ladder score`)
 ```
 
 ### Happiness across the world over time
@@ -45,6 +53,7 @@ The main life evaluation question asked in the poll is the Cantril Life Ladder q
 
 > “Please imagine a ladder, with steps numbered from 0 at the bottom to 10 at the top. The top of the ladder represents the best possible life for you and the bottom of the ladder represents the worst possible life for you. On which step of the ladder would you say you personally feel you stand at this time?”
 
+:::{.panel-tabset}
 
 ## 🔢 Table
 
@@ -56,10 +65,33 @@ The main life evaluation question asked in the poll is the Cantril Life Ladder q
 
 
 # Create table
+cantril_tab <- 
+  cantril %>% 
+  select(Country, Year, CLS) %>% #selecting relevant variables
+  filter(Year %in% c(2011, 2023)) %>% ## Filtering the data for years 2011 & 2023
+  pivot_wider(names_from = Year,
+              values_from = CLS) %>% 
+  mutate(abs_change = 
+           round(`2023` - `2011`, 
+                 digits = 2),
+         rel_change = 
+           percent(round(
+             abs_change/`2011`, 
+             digits = 2))
+  )
 
-"WRITE_YOUR_CODE_HERE"
+#Outputting the table
+reactable(cantril_tab,
+          columns = list(
+            abs_change = colDef(name = "Absolute change"),
+            rel_change = colDef(name = "Relative change")
+          )) %>% 
+  add_title(
+    title = "Table 1: Self-reported life satisfaction for years 2011 & 2023",
+    align = "center",
+    font_size = 20
+    )
 ```
-
 
 ## 🌎 Map
 
@@ -81,11 +113,11 @@ g <- list(
 
 # Create choropleth map
 cantril %>%
-  mutate(`Cantril ladder score` = round(`Cantril ladder score`, 2)) %>%
+  mutate(CLS = round(CLS, 2)) %>%
   plot_geo(width = 940) %>%
   add_trace(
-    z = ~`Cantril ladder score`,
-    color = ~`Cantril ladder score`,
+    z = ~CLS,
+    color = ~CLS,
     zmin = 0, # Set minimum value for color scale
     zmax = 10, # Set maximum value for color scale
     locations = ~Code,
@@ -99,7 +131,6 @@ cantril %>%
   layout(geo = g)
 ```
 
-
 ## 📈 Simple Chart
 
 ```{r}
@@ -107,7 +138,17 @@ cantril %>%
 # Note that your chart will not have the ability to filter countries like the one on the Our World in Data page.
 
 # Create line chart
-"WRITE_YOUR_CODE_HERE"
+cantril %>% 
+  filter(Country %in% c("Cameroon", "Malaysia", "Germany", "Cote d'Ivoire", "Morocco", "Brazil",  "Malawi", "Kenya")) %>% 
+  ggplot(aes(x = Year,
+             y = CLS,
+             color = Country)) +
+  geom_line(linewidth = 1,
+            alpha = 0.8) +
+  labs(y = "Cantril Ladder score",
+       title = "Cantril Ladder score evolution over time, from 2011 to 2023",
+       subtitle = "Data for Brazil, Cameroon, Cote d'Ivoire, Germany, Kenya, 
+Malawi, Malaysia & Morocco")
 ```
 
 ## 📈 Advanced Chart
@@ -129,7 +170,7 @@ shared_cantril_data <- highlight_key(cantril)
 cantril_plotly <- plot_ly(
   shared_cantril_data, 
   x = ~Year, 
-  y = ~`Cantril ladder score`, 
+  y = ~CLS, 
   color = ~Country, 
   type = "scatter", 
   mode = "lines+markers"
@@ -154,11 +195,13 @@ bscols(
 <!-- Custom javascript to set default values in the filter: -->
 <script>
 function filter_default() {
-  var default_countries = ["Norway", "Australia", "Germany", "Bolivia", "Colombia", "Bhutan"]; // Set default countries here
+  var default_countries = ["Cameroon", "Cote d'Ivoire", "Germany", "Morocco", "Malaysia", "Malawi", "Brazil", "Kenya"]; // Set default countries here
   document.getElementById("country_filter").getElementsByClassName("selectized")[0].selectize.setValue(default_countries, false);
 }
 window.onload = filter_default;
 </script>
+
+:::
 
 # {.unlisted}
 
