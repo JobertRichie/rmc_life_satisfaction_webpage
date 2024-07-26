@@ -1,0 +1,13 @@
+---
+author: "Jobert Richie Nansseu"
+date: "2024-07-26"
+title: "Workshop 3 : Self-reported life satisfaction"
+---
+
+### Link to the repo created:
+
+[here](https://github.com/JobertRichie/rmc_life_satisfaction_webpage)
+
+### Link to the webpage created:
+
+ [here](https://jobertrichie.github.io/rmc_life_satisfaction_webpage/)
